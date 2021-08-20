@@ -1,0 +1,218 @@
+/*
+ * Pueda usar esta plantilla para la carga del reto a iMaster
+ * Copie las clases de los paquetes Modelo, Vista, Controlador y Util
+ * No incluya los import de los archivos .java solo las clases
+ */
+// Importaciones necesarias en iMaster
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import javax.swing.JOptionPane;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+
+// Util (No modificar)
+class JDBCUtilities {
+    private static final String DATABASE_LOCATION = "ProyectosConstruccion.db";
+
+    public static Connection getConnection() throws SQLException {
+        String url = "jdbc:sqlite:"+DATABASE_LOCATION;
+
+        return DriverManager.getConnection(url);
+    }
+}
+
+// Remplace en adelante por las clases de sus archivos .java
+
+// Vista
+class VistaRequerimientos {
+    public static final ControladorRequerimientos controlador = new ControladorRequerimientos();
+    public static void requerimiento1() {
+        try {
+            ArrayList<Requerimiento_1Vo> resultado_requerimiento1 = controlador.consultarRequerimiento1();
+            //resultado_requerimiento1.forEach(System.out::println);
+            for (Requerimiento_1Vo i : resultado_requerimiento1) {
+                System.out.printf("%s %d %n", i.getCiudadResidencia(), i.getPromedio());
+            }
+        } catch (Exception e) {
+            System.out.println("Se ha producido el siguiente error:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    public static void requerimiento2() {
+        try {
+            ArrayList<Requerimiento_2Vo> resultado_requerimiento2 = controlador.consultarRequerimiento2();
+            for (Requerimiento_2Vo i : resultado_requerimiento2) {
+                System.out.println(i.getIdProyecto() + " " + i.getProveedor());
+            }
+        } catch (Exception e) {
+            System.out.println("Se ha producido el siguiente error:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+    public static void requerimiento3() {
+        try {
+            ArrayList<Requerimiento_3Vo> resultado_requerimiento3 = controlador.consultarRequerimiento3();
+            for (Requerimiento_3Vo i : resultado_requerimiento3) {
+               System.out.printf("%d %s %n", i.getIdProyecto(), i.getNombreMaterial());
+            }
+
+        } catch (Exception e) {
+            System.out.println("Se ha producido el siguiente error:" + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+}
+
+// Controlador
+class ControladorRequerimientos {
+private final Requerimiento_1Dao requerimiento_1Dao;
+    private final Requerimiento_2Dao requerimiento_2Dao;
+    private final Requerimiento_3Dao requerimiento_3Dao;
+    public ControladorRequerimientos (){
+        this.requerimiento_1Dao = new Requerimiento_1Dao();
+        this.requerimiento_2Dao = new Requerimiento_2Dao();
+        this.requerimiento_3Dao = new Requerimiento_3Dao();
+    }
+     public ArrayList<Requerimiento_1Vo> consultarRequerimiento1() throws SQLException {
+        return this.requerimiento_1Dao.requerimiento1();
+    }
+    public ArrayList<Requerimiento_2Vo> consultarRequerimiento2() throws SQLException {
+        return this.requerimiento_2Dao.requerimiento2();
+    }
+    public ArrayList<Requerimiento_3Vo> consultarRequerimiento3() throws SQLException {
+        return this.requerimiento_3Dao.requerimiento3();
+    }
+}
+
+// Modelo
+// VO
+class Requerimiento_1Vo {
+private Integer idProyecto;
+    private String ciudadResidencia;
+    private Integer promedio;
+    public Requerimiento_1Vo() {
+    }
+    public String getCiudadResidencia() {
+        return ciudadResidencia;
+    }
+    public void setCiudadResidencia(String ciudadResidencia) {
+        this.ciudadResidencia = ciudadResidencia;
+    }    
+    public Integer getPromedio() {
+        return promedio;
+    }
+    public void setPromedio(Integer promedio) {
+        this.promedio = promedio;
+    }
+}
+
+class Requerimiento_2Vo {
+    private Integer idProyecto;
+    private String proveedor;
+    private String ciudad;
+    public Requerimiento_2Vo() {
+    }
+        public Integer getIdProyecto() {
+        return idProyecto;
+    }
+    public void setIdProyecto(Integer idProyecto) {
+        this.idProyecto = idProyecto;
+    }
+    public String getProveedor() {
+        return proveedor;
+    }
+    public void setProveedor(String proveedor) {
+        this.proveedor = proveedor;
+    }
+    public String getCiudad() {
+        return ciudad;
+    }
+    public void setCiudad(String ciudad) {
+        this.ciudad = ciudad;
+    }
+}
+
+class Requerimiento_3Vo {
+    private Integer idProyecto;
+    private String nombreMaterial;
+    public Requerimiento_3Vo() {
+    }
+    public Integer getIdProyecto() {
+        return idProyecto;
+    }
+    public void setIdProyecto(Integer idProyecto) {
+        this.idProyecto = idProyecto;
+    }
+    public String getNombreMaterial() {
+        return nombreMaterial;
+    }
+    public void setNombreMaterial(String nombreMaterial) {
+        this.nombreMaterial = nombreMaterial;
+    }
+}
+
+// DAO
+class Requerimiento_1Dao {
+    public ArrayList<Requerimiento_1Vo> requerimiento1() throws SQLException {
+        ArrayList<Requerimiento_1Vo> listadoRegistros_rq1 = new ArrayList<Requerimiento_1Vo>();
+        Connection connex = JDBCUtilities.getConnection();
+        String sql = "SELECT ciudad_Residencia, ROUND(AVG(Salario)) as promedio FROM Lider GROUP BY ciudad_Residencia HAVING AVG(Salario)<400000 ORDER BY promedio DESC;";
+        try (Statement stmt = connex.createStatement(); ResultSet rs = stmt.executeQuery(sql)){
+            while (rs.next()) {
+                Requerimiento_1Vo requerimiento1 = new Requerimiento_1Vo();
+                requerimiento1.setCiudadResidencia(rs.getString("Ciudad_Residencia"));
+                requerimiento1.setPromedio(rs.getInt("Promedio"));
+                listadoRegistros_rq1.add(requerimiento1);
+                }
+            rs.close();
+            connex.close();
+        } catch (Exception e){
+            JOptionPane.showMessageDialog(null, "Error de conexión a la BD: "+e);
+        }
+        return listadoRegistros_rq1;
+    }
+}
+
+class Requerimiento_2Dao {
+    public ArrayList<Requerimiento_2Vo> requerimiento2() throws SQLException {
+        ArrayList<Requerimiento_2Vo> listadoRegistros_rq2 = new ArrayList<Requerimiento_2Vo>();
+        Connection connex = JDBCUtilities.getConnection();
+        String sql = "SELECT p.id_Proyecto, c.proveedor FROM Proyecto p JOIN compra c ON (p.id_Proyecto = c.id_Proyecto) WHERE p.ciudad = 'Neiva' ORDER BY p.id_Proyecto;";
+            try (Statement stmt = connex.createStatement(); ResultSet rs = stmt.executeQuery(sql)){
+                while (rs.next()) {
+                    Requerimiento_2Vo requerimiento2 = new Requerimiento_2Vo();
+                    requerimiento2.setIdProyecto(rs.getInt("Id_Proyecto"));
+                    requerimiento2.setProveedor(rs.getString("Proveedor"));
+                    listadoRegistros_rq2.add(requerimiento2);
+                    }
+                rs.close();
+                connex.close();
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(null, "Error de conexión a la BD:"+e);
+            }
+            return listadoRegistros_rq2;
+    }
+}
+
+class Requerimiento_3Dao {
+    public ArrayList<Requerimiento_3Vo> requerimiento3() throws SQLException {
+        ArrayList<Requerimiento_3Vo> listadoRegistros_rq3 = new ArrayList<Requerimiento_3Vo>();
+        Connection connex = JDBCUtilities.getConnection();
+        String sql = "SELECT p.id_Proyecto, mc.nombre_Material FROM Proyecto p JOIN compra c ON (p.id_Proyecto = c.id_Proyecto) JOIN MaterialConstruccion mc ON (c.id_MaterialConstruccion = mc.id_MaterialConstruccion) WHERE p.id_Proyecto between 40 and 55 ORDER BY p.id_Proyecto ASC;";
+            try (Statement stmt = connex.createStatement(); ResultSet rs = stmt.executeQuery(sql)){
+                while (rs.next()) {
+                    Requerimiento_3Vo requerimiento3 = new Requerimiento_3Vo();
+                    requerimiento3.setIdProyecto(rs.getInt("id_Proyecto"));
+                    requerimiento3.setNombreMaterial(rs.getString("nombre_Material"));
+                    listadoRegistros_rq3.add(requerimiento3);
+                    }
+                rs.close();
+                connex.close();
+            } catch (Exception e){
+                JOptionPane.showMessageDialog(null, "Error de conexión a la BD:"+e);
+            }
+            return listadoRegistros_rq3;
+    }
+}
